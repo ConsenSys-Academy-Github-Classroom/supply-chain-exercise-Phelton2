@@ -1,19 +1,25 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.5.16 <0.9.0;
+pragma solidity >=0.5.16 < 0.9.0;
 
 contract SupplyChain {
-  //State Variables
-  
+  // set owner
   address public owner;
 
+  // Added a variable called skuCount to track the most recent sku numbers
   uint public skuCount;
 
+  /* Add a line that creates a public mapping that maps the SKU (a number) to an Item.
+     Call this mappings items
+  */
   mapping(uint => Item) public items;
 
+  // Add a line that creates an enum called State. Must have 4 states
   enum State{ForSale, Sold, Shipped, Received}
   State choice;
   State constant defaultChoice = State.ForSale;
 
+
+  // Struct
   struct Item {
     string name;
     uint sku;
@@ -94,7 +100,7 @@ contract SupplyChain {
     owner == msg.sender;
     skuCount = 0;
   }
-
+  // function addItem()
   function addItem(string memory _name, uint _price) public returns (bool) {
      items[skuCount] = Item({
      name: _name, 
@@ -109,7 +115,7 @@ contract SupplyChain {
     emit LogForSale(skuCount);
     return true;
   }
-
+  // function buyItem()
   function buyItem(uint sku) public payable forSale(sku) paidEnough(items[sku].price) checkValue(sku) {
 
     Item storage item = items[sku];
@@ -120,7 +126,7 @@ contract SupplyChain {
     emit LogSold(sku);
 
   }
-
+  // function shipItem()
   function shipItem(uint sku) public sold(sku) verifyCaller(items[sku].seller) {
 
     Item storage item = items[sku];
@@ -129,15 +135,15 @@ contract SupplyChain {
     emit LogShipped(sku);
 
   }
-
-function receiveItem(uint sku) public shipped(sku) verifyCaller(items[sku].buyer) {
+  // function receiveItem()
+  function receiveItem(uint sku) public shipped(sku) verifyCaller(items[sku].buyer) {
 
     Item storage item = items[sku];
     item.state = State.Received;
 
     emit LogReceived(sku);
   }
-
+  // function fetchItem()
   function fetchItem(uint _sku) public view returns (string memory name, uint sku, uint price, uint state, address seller, address buyer){
 
   name = items[_sku].name;
